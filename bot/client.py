@@ -15,9 +15,12 @@ class AkariBot(commands.Bot):
         )
 
     async def setup_hook(self):
-        # Cog 로드
+        # 기존 Cog
         await self.load_extension("bot.commands.ping")
-        # 필요하다면 여기서 DB 초기화나 다른 extension 로드
+        
+        # [NEW] TTS 기능 추가!
+        await self.load_extension("bot.commands.tts")
+        
         print(f"✨ [Bot] {self.user} (Akari) 설정 완료!")
 
     async def on_ready(self):
