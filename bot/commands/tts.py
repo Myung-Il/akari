@@ -3,6 +3,7 @@ from discord import app_commands
 from discord.ext import commands
 from features.voice_service import text_to_mp3, delete_file
 import os
+import platform
 
 class TTS(commands.Cog):
     def __init__(self, bot):
@@ -61,24 +62,32 @@ class TTS(commands.Cog):
         await self.play_tts(voice_client, message.content, None)
 
     # ==========================================
-    # 🔊 공통 재생 함수 (중복 제거)
+    # 🔊 공통 재생 함수
     # ==========================================
     async def play_tts(self, voice_client, text, interaction=None):
         mp3_path = None
         try:
-            # 만약 이미 말하고 있다면 끊고 새로 말하기 (원하면 줄 세우기도 가능)
             if voice_client.is_playing():
                 voice_client.stop()
 
-            # 1. MP3 생성
             mp3_path = text_to_mp3(text)
             
-            # 2. FFmpeg 경로 (로컬용)
-            ffmpeg_executable = os.path.abspath("bin/ffmpeg.exe")
+            # [수정됨] OS에 따라 알맞은 FFmpeg 선택
+            if platform.system() == "Windows":
+                ffmpeg_executable = os.path.abspath("bin/ffmpeg.exe")
+            else:
+                # Render(Linux) 환경
+                ffmpeg_executable = os.path.abspath("bin/ffmpeg")
             
-            # 3. 재생
+            # 파일이 진짜 있는지 확인
+            if not os.path.exists(ffmpeg_executable):
+                raise FileNotFoundError(f"FFmpeg 파일을 찾을 수 없습니다: {ffmpeg_executable}")
+
             source = discord.FFmpegPCMAudio(mp3_path, executable=ffmpeg_executable)
             voice_client.play(source, after=lambda e: delete_file(mp3_path))
+            
+            if interaction:
+                await interaction.followup.send(f"🗣️ **말하는 중:** {text}")
 
         except Exception as e:
             print(f"TTS 오류: {e}")

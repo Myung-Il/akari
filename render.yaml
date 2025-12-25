@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: akari-bot
+    env: python
+    # 방금 만든 스크립트로 빌드
+    buildCommand: "./build.sh"
+    # 실행 명령어
+    startCommand: "python main.py"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      - key: DISCORD_TOKEN
+        sync: false # Render 대시보드에서 직접 입력하겠다는 뜻
