@@ -3,10 +3,10 @@ import asyncio
 from bot.client import AkariBot
 from bot.config import TOKEN
 from web.app import start_web_server
-from db.init_db import init_db
+from bot.database import init_db
 
 def main():
-    # 1. 데이터베이스 테이블 초기화
+    # 1. 데이터베이스 테이블 초기화 (Supabase)
     init_db()
 
     # 2. Flask 웹 서버를 별도 스레드에서 실행 (UptimeRobot용)
