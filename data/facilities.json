@@ -13,7 +13,7 @@
       {
         "level": 2,
         "name": "텃밭 2구획",
-        "cost": 3000,
+        "cost": 5000,
         "effect": { "plot_slots": 2 },
         "description": "두 개의 작물을 동시에 키웁니다."
       },
