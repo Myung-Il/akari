@@ -1,45 +1,4 @@
 {
-  "storage": {
-    "name": "약초 저장고",
-    "description": "채집한 아이템을 보관합니다. 레벨당 10칸씩 늘어납니다.",
-    "levels": [
-      {
-        "level": 1,
-        "name": "작은 상자",
-        "cost": 0,
-        "effect": { "max_slots": 10 },
-        "description": "겨우 10개 남짓 들어가는 작은 상자입니다."
-      },
-      {
-        "level": 2,
-        "name": "나무 선반",
-        "cost": 1000,
-        "effect": { "max_slots": 20 },
-        "description": "정리가 수월해져 20개까지 보관합니다."
-      },
-      {
-        "level": 3,
-        "name": "철제 캐비닛",
-        "cost": 10000,
-        "effect": { "max_slots": 30 },
-        "description": "튼튼한 수납공간. 30개까지 들어갑니다."
-      },
-      {
-        "level": 4,
-        "name": "확장형 창고",
-        "cost": 50000,
-        "effect": { "max_slots": 40 },
-        "description": "벽을 허물어 공간을 넓혔습니다. 40개 보관 가능."
-      },
-      {
-        "level": 5,
-        "name": "대형 물류 창고",
-        "cost": 200000,
-        "effect": { "max_slots": 50 },
-        "description": "모든 재고를 관리할 수 있는 거대한 창고. 50개 보관."
-      }
-    ]
-  },
   "farm": {
     "name": "약초 텃밭",
     "description": "씨앗을 심으면 정확히 10분 뒤 수확할 수 있습니다.",
@@ -54,8 +13,8 @@
       {
         "level": 2,
         "name": "텃밭 2구획",
-        "cost": 3000,
-        "effect": { "plot_slots": 2, "growth_time_min": 10 },
+        "cost": 5000,
+        "effect": { "plot_slots": 2 },
         "description": "두 개의 작물을 동시에 키웁니다."
       },
       {
@@ -64,61 +23,6 @@
         "cost": 30000,
         "effect": { "plot_slots": 3, "growth_time_min": 10 },
         "description": "세 개의 작물을 동시에 키웁니다."
-      },
-      {
-        "level": 4,
-        "name": "텃밭 4구획",
-        "cost": 150000,
-        "effect": { "plot_slots": 4, "growth_time_min": 10 },
-        "description": "네 개의 작물을 동시에 키웁니다."
-      },
-      {
-        "level": 5,
-        "name": "텃밭 5구획",
-        "cost": 500000,
-        "effect": { "plot_slots": 5, "growth_time_min": 10 },
-        "description": "다섯 개의 작물을 동시에 키웁니다."
-      }
-    ]
-  },
-  "workshop": {
-    "name": "연금술 공방",
-    "description": "영약을 제조합니다. 시설 레벨이 영약의 최대 등급을 결정합니다.",
-    "levels": [
-      {
-        "level": 1,
-        "name": "초보자의 책상",
-        "cost": 0,
-        "effect": { "max_craft_grade": 1 },
-        "description": "기초적인 1성 영약까지만 제조할 수 있습니다."
-      },
-      {
-        "level": 2,
-        "name": "숙련공의 작업대",
-        "cost": 5000,
-        "effect": { "max_craft_grade": 2 },
-        "description": "2성 영약(범급 수준) 제조가 가능해집니다."
-      },
-      {
-        "level": 3,
-        "name": "전문가의 실험실",
-        "cost": 50000,
-        "effect": { "max_craft_grade": 3 },
-        "description": "3성 영약(영급 수준) 제조가 가능해집니다."
-      },
-      {
-        "level": 4,
-        "name": "장인의 공방",
-        "cost": 300000,
-        "effect": { "max_craft_grade": 4 },
-        "description": "4성 영약(지보급 수준) 제조가 가능해집니다."
-      },
-      {
-        "level": 5,
-        "name": "전설의 연금술 솥",
-        "cost": 1000000,
-        "effect": { "max_craft_grade": 5 },
-        "description": "5성 영약(천보급 수준) 제조가 가능해집니다."
       }
     ]
   }

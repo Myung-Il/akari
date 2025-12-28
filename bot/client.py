@@ -1,38 +1,46 @@
 import discord
 from discord.ext import commands
+import os
 from bot.config import INTENTS_FLAGS
-
-MY_GUILD = discord.Object(id=1018709014835626125)
 
 class AkariBot(commands.Bot):
     def __init__(self):
+        # 1. 권한 설정
         intents = discord.Intents.default()
         intents.members = INTENTS_FLAGS["members"]
         intents.message_content = INTENTS_FLAGS["message_content"]
         
         super().__init__(
-            command_prefix="!", # 슬래시 커맨드를 써도 prefix는 유지하는 게 좋습니다.
+            command_prefix="!", 
             intents=intents,
             help_command=None
         )
 
     async def setup_hook(self):
-        # 1. Cog(기능) 로드
-        await self.load_extension("bot.commands.ping")
-        await self.load_extension("bot.commands.tts")
+        # ---------------------------------------------------------
+        # [복구] 기존 기능 (Ping, TTS) 로드
+        # ※ 파일 위치가 bot/commands/ 폴더 안이라고 가정했습니다.
+        # ---------------------------------------------------------
+        extensions = [
+            "bot.commands.ping",  # 핑 기능 복구
+            "bot.commands.tts",   # TTS 기능 복구
+            "features.garden"     # 텃밭/RPG 기능 (파일명 garden.py)
+        ]
+
+        for ext in extensions:
+            try:
+                await self.load_extension(ext)
+                print(f"✅ [Load] {ext} 로드 성공")
+            except Exception as e:
+                print(f"❌ [Error] {ext} 로드 실패: {e}")
         
-        # 2. 슬래시 커맨드 동기화 (전역)
-        # 주의: 전역 동기화는 디스코드 서버에 반영되기까지 최대 1시간이 걸릴 수 있습니다.
-        # 개발 중에는 특정 서버 ID를 지정해서 동기화하는 것이 빠르지만, 
-        # 일단 편의를 위해 전역 동기화로 설정합니다.
+        # 2. 슬래시 커맨드 동기화
         try:
             synced = await self.tree.sync()
-            print(f"✨ [Bot] 슬래시 커맨드 {len(synced)}개 동기화 완료!")
+            print(f"✨ [Sync] 슬래시 커맨드 {len(synced)}개 동기화 완료")
         except Exception as e:
             print(f"❌ [Error] 커맨드 동기화 실패: {e}")
 
-        print(f"✨ [Bot] {self.user} (Akari) 설정 완료!")
-
     async def on_ready(self):
-        print(f"✅ [Bot] {self.user} 온라인! ID: {self.user.id}")
-        await self.change_presence(activity=discord.Game(name="게임 제작 중"))
+        print(f"✅ [Online] {self.user} 로그인 완료 (ID: {self.user.id})")
+        await self.change_presence(activity=discord.Game(name="아카리 봇 서비스 중"))
