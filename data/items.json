@@ -1,0 +1,247 @@
+{
+  "//_COMMENT_Plant": "--- [1000~1999] 일반 식물 (Plant) ---",
+  "1001": {
+    "name": "잡초",
+    "type": "plant",
+    "price": 5,
+    "description": "어디서나 자라는 끈질긴 풀. 생명력이 대단하다."
+  },
+  "1002": {
+    "name": "민들레",
+    "type": "plant",
+    "price": 5,
+    "description": "노란 꽃이 피는 야생화. 홀씨가 되어 날아간다."
+  },
+  "1003": {
+    "name": "토끼풀",
+    "type": "plant",
+    "price": 10,
+    "description": "행운을 가져다준다고 하지만, 여기선 흔한 풀이다."
+  },
+  "1004": {
+    "name": "강아지풀",
+    "type": "plant",
+    "price": 8,
+    "description": "바람에 살랑거리는 부드러운 풀."
+  },
+  "1005": {
+    "name": "상추",
+    "type": "plant",
+    "price": 35,
+    "description": "누군가 심어놓은 쌈 채소. 싱싱하다."
+  },
+  "1006": {
+    "name": "방울토마토",
+    "type": "plant",
+    "price": 35,
+    "description": "한 입 크기의 빨간 토마토."
+  },
+  "1007": {
+    "name": "하우스 식물",
+    "type": "plant",
+    "price": 25,
+    "description": "하우스 속에서 자라는 식물."
+  },
+  "1008": {
+    "name": "얼음붙은 풀",
+    "type": "plant",
+    "price": 20,
+    "description": "얼음이 붙은 풀. 추위에 강하다."
+  },
+  "1009": {
+    "name": "이끼 덩어리",
+    "type": "plant",
+    "price": 15,
+    "description": "축축한 곳에서 자라는 이끼 뭉치."
+  },
+  "1010": {
+    "name": "산초 나뭇잎",
+    "type": "plant",
+    "price": 30,
+    "description": "향긋한 향이 나는 산초나무 잎."
+  },
+  "1011": {
+    "name": "고사리",
+    "type": "plant",
+    "price": 40,
+    "description": "산에서 자라는 식용 양치식물."
+  },
+  "1012": {
+    "name": "산딸기",
+    "type": "plant",
+    "price": 50,
+    "description": "새콤달콤한 야생 딸기."
+  },
+  "1013": {
+    "name": "칡뿌리",
+    "type": "plant",
+    "price": 75,
+    "description": "흙 투성이의 굵은 뿌리. 약재로 쓰인다."
+  },
+  "1014": {
+    "name": "야광 이끼",
+    "type": "plant",
+    "price": 100,
+    "description": "어두운 곳에서 희미하게 빛나는 이끼."
+  },
+  "1015": {
+    "name": "독 덩굴",
+    "type": "plant",
+    "price": 150,
+    "description": "가시 끝에 독이 맺혀 있는 위험한 덩굴."
+  },
+
+  "//_COMMENT_Special": "--- [2000~2999] 특수 재료 (Special) ---",
+  "2001": {
+    "name": "옥나무 껍질",
+    "type": "special",
+    "price": 100,
+    "description": "단단하고 거친 나무 껍질. 약재를 달일 때 쓴다."
+  },
+  "2002": {
+    "name": "육각 버섯",
+    "type": "special",
+    "price": 250,
+    "description": "특이한 육각형 모양의 버섯. (연금술 촉매제)"
+  },
+  "2003": {
+    "name": "독액 주머니",
+    "type": "special",
+    "price": 300,
+    "description": "늪지 식물에서 추출한 독. 정제하면 약이 된다."
+  },
+
+  "//_COMMENT_Spirit": "--- [3000~3999] 영약 재료 (Spirit) ---",
+  "3001": {
+    "name": "맑은 이슬초",
+    "type": "spirit",
+    "grade": 1,
+    "price": 1000,
+    "description": "[범급] 아침 이슬의 맑은 기운을 머금은 영초."
+  },
+  "3002": {
+    "name": "월광초",
+    "type": "spirit",
+    "grade": 1,
+    "price": 1200,
+    "description": "[범급] 달빛을 받고 자라 은은한 빛을 낸다."
+  },
+  "3003": {
+    "name": "청명 버섯",
+    "type": "spirit",
+    "grade": 2,
+    "price": 3500,
+    "description": "[영급] 정신을 맑게 해주는 푸른빛 버섯."
+  },
+  "3004": {
+    "name": "화염 뿌리",
+    "type": "spirit",
+    "grade": 2,
+    "price": 4000,
+    "description": "[영급] 만지면 따뜻한 열기가 느껴지는 붉은 뿌리."
+  },
+  "3005": {
+    "name": "석광화",
+    "type": "spirit",
+    "grade": 3,
+    "price": 15000,
+    "description": "[지보급] 돌 틈에서 빛을 내며 자라는 희귀한 꽃."
+  },
+  "3006": {
+    "name": "빙정",
+    "type": "spirit",
+    "grade": 3,
+    "price": 18000,
+    "description": "[지보급] 얼음의 정수가 맺힌 결정체."
+  },
+  "3007": {
+    "name": "천년 하수오",
+    "type": "spirit",
+    "grade": 4,
+    "price": 100000,
+    "description": "[천재지보] 천 년을 묵어 사람의 형상을 한 전설의 약초."
+  },
+  "3008": {
+    "name": "등굽은 꽃잎",
+    "type": "spirit",
+    "grade": 1,
+    "price": 800,
+    "description": "[범급] 동굴 깊은 곳에서 자라는 신비한 꽃잎."
+  },
+
+  "//_COMMENT_Potion": "--- [4000~4999] 물약 (Potion) ---",
+  "4001": {
+    "name": "활력수 제조법",
+    "type": "potion",
+    "price": 300,
+    "description": "마시면 피로가 조금 풀리는 기본적인 물약."
+  },
+  "4002": {
+    "name": "맹독 주머니 제조법",
+    "type": "potion",
+    "price": 800,
+    "description": "고농축된 중독하는 물약. 접촉 시 중독된다."
+  },
+  "4003": {
+    "name": "광채수 제조법",
+    "type": "potion",
+    "price": 1500,
+    "description": "복용 시 정신이 번쩍 드는 신비한 물약."
+  },
+  "4004": {
+    "name": "열기수 제조법",
+    "type": "potion",
+    "price": 5500,
+    "description": "몸을 따뜻하게 해주는 물약. 추위에 강해진다."
+  },
+  "4005": {
+    "name": "옥 수 제조법",
+    "type": "potion",
+    "price": 2000,
+    "description": "옥 나무 묶음에서 우러난 맑은 물약."
+  },
+
+  "//_COMMENT_Trash": "--- [5000~5999] 잡동사니 (Trash) ---",
+  "5001": {
+    "name": "녹슨 못",
+    "type": "trash",
+    "price": 1,
+    "description": "오래되어 붉게 녹슨 못. 찔리면 위험하다."
+  },
+  "5002": {
+    "name": "과자 봉지",
+    "type": "trash",
+    "price": 3,
+    "description": "등산객이 버리고 간 빈 봉지. 부스러기만 남았다."
+  },
+  "5003": {
+    "name": "끊어진 밧줄",
+    "type": "trash",
+    "price": 2,
+    "description": "힘을 주면 뚝 끊어질 것 같은 낡은 밧줄 조각."
+  },
+  "5004": {
+    "name": "빈 페트병",
+    "type": "trash",
+    "price": 10,
+    "description": "내용물이 없는 플라스틱 병."
+  },
+  "5005": {
+    "name": "한 줌의 흙",
+    "type": "trash",
+    "price": 1,
+    "description": "그냥 흙이다. 털어내면 아무것도 남지 않는다."
+  },
+  "5006": {
+    "name": "마른 곤충",
+    "type": "trash",
+    "price": 1,
+    "description": "죽은 지 오래되어 바스라지는 벌레 시체."
+  },
+  "5007": {
+    "name": "짝 잃은 단추",
+    "type": "trash",
+    "price": 8,
+    "description": "옷에서 떨어진 단추. 이것만으로는 쓸모가 없다."
+  }
+}

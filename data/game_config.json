@@ -1,0 +1,17 @@
+{
+  "inventory_rules": {
+    "base_bag_slots": 5,
+    "max_stack_size": 30,
+    "loot_mode": "auto_acquire_forced",
+    "on_bag_full": "discard_new_item_type"
+  },
+  "storage_rules": {
+    "overflow_policy": "auto_sell_immediate",
+    "sell_price_multiplier": 1.0,
+    "warning_message": "창고가 가득 찼습니다. 획득하는 모든 아이템은 즉시 판매됩니다."
+  },
+  "exploration_rules": {
+    "can_abort": true,
+    "action_point_cost_multiplier": 1.0
+  }
+}
