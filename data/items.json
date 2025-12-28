@@ -169,76 +169,44 @@
     "description": "[범급] 동굴 깊은 곳에서 자라는 신비한 꽃잎."
   },
 
-  "//_COMMENT_Potion": "--- [4000~4999] 물약 (Potion) ---",
-  "4001": {
-    "name": "활력수 제조법",
-    "type": "potion",
-    "price": 300,
-    "description": "마시면 피로가 조금 풀리는 기본적인 물약."
-  },
-  "4002": {
-    "name": "맹독 주머니 제조법",
-    "type": "potion",
-    "price": 800,
-    "description": "고농축된 중독하는 물약. 접촉 시 중독된다."
-  },
-  "4003": {
-    "name": "광채수 제조법",
-    "type": "potion",
-    "price": 1500,
-    "description": "복용 시 정신이 번쩍 드는 신비한 물약."
-  },
-  "4004": {
-    "name": "열기수 제조법",
-    "type": "potion",
-    "price": 5500,
-    "description": "몸을 따뜻하게 해주는 물약. 추위에 강해진다."
-  },
-  "4005": {
-    "name": "옥 수 제조법",
-    "type": "potion",
-    "price": 2000,
-    "description": "옥 나무 묶음에서 우러난 맑은 물약."
-  },
-
   "//_COMMENT_Trash": "--- [5000~5999] 잡동사니 (Trash) ---",
-  "5001": {
+  "4001": {
     "name": "녹슨 못",
     "type": "trash",
     "price": 1,
     "description": "오래되어 붉게 녹슨 못. 찔리면 위험하다."
   },
-  "5002": {
+  "4002": {
     "name": "과자 봉지",
     "type": "trash",
     "price": 3,
     "description": "등산객이 버리고 간 빈 봉지. 부스러기만 남았다."
   },
-  "5003": {
+  "4003": {
     "name": "끊어진 밧줄",
     "type": "trash",
     "price": 2,
     "description": "힘을 주면 뚝 끊어질 것 같은 낡은 밧줄 조각."
   },
-  "5004": {
+  "4004": {
     "name": "빈 페트병",
     "type": "trash",
     "price": 10,
     "description": "내용물이 없는 플라스틱 병."
   },
-  "5005": {
+  "4005": {
     "name": "한 줌의 흙",
     "type": "trash",
     "price": 1,
     "description": "그냥 흙이다. 털어내면 아무것도 남지 않는다."
   },
-  "5006": {
+  "4006": {
     "name": "마른 곤충",
     "type": "trash",
     "price": 1,
     "description": "죽은 지 오래되어 바스라지는 벌레 시체."
   },
-  "5007": {
+  "4007": {
     "name": "짝 잃은 단추",
     "type": "trash",
     "price": 8,
