@@ -1,0 +1,62 @@
+[
+  {
+    "rankId": 0,
+    "title": "약초꾼",
+    "description": "풀 냄새가 몸에 배기 시작한 초보 채집가.",
+    "requiredExpForNext": 100,
+    "totalExpReached": 0,
+    "actionPointBonus": 0,
+    "bagSlotBonus": 0,
+    "rewards": []
+  },
+  {
+    "rankId": 1,
+    "title": "약사",
+    "description": "약초의 성질을 이해하고 다루는 전문가.",
+    "requiredExpForNext": 200,
+    "totalExpReached": 100,
+    "actionPointBonus": 1,
+    "bagSlotBonus": 1,
+    "rewards": ["basic_crafting_tool"]
+  },
+  {
+    "rankId": 2,
+    "title": "영약사",
+    "description": "영적인 기운을 약에 담을 수 있는 장인.",
+    "requiredExpForNext": 300,
+    "totalExpReached": 300,
+    "actionPointBonus": 2,
+    "bagSlotBonus": 2,
+    "rewards": ["spirit_sense_skill"]
+  },
+  {
+    "rankId": 3,
+    "title": "지약사",
+    "description": "땅의 이치를 깨달아 명약을 빚어내는 대가.",
+    "requiredExpForNext": 400,
+    "totalExpReached": 600,
+    "actionPointBonus": 3,
+    "bagSlotBonus": 3,
+    "rewards": ["earth_alchemy"]
+  },
+  {
+    "rankId": 4,
+    "title": "지연대사",
+    "description": "자연과 하나 되어 생명을 다루는 경지.",
+    "requiredExpForNext": 500,
+    "totalExpReached": 1000,
+    "actionPointBonus": 4,
+    "bagSlotBonus": 4,
+    "rewards": ["master_extraction"]
+  },
+  {
+    "rankId": 5,
+    "title": "천연단사",
+    "description": "하늘의 뜻을 담은 단약을 빚는 전설.",
+    "requiredExpForNext": 0,
+    "totalExpReached": 1500,
+    "actionPointBonus": 5,
+    "bagSlotBonus": 5,
+    "rewards": ["heavenly_furnace"]
+  }
+]
