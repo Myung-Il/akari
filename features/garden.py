@@ -9,7 +9,7 @@ from datetime import datetime
 from bot.database import db
 
 # ---------------------------------------------------------
-# 데이터 관리 (JSON 로드 및 에러 방지)
+# 데이터 관리
 # ---------------------------------------------------------
 class AlchemyManager:
     _instance = None
@@ -40,7 +40,6 @@ class AlchemyManager:
                 with open(file_path, "r", encoding="utf-8") as f:
                     self.data[key] = json.load(f)
             except Exception as e:
-                # print(f"⚠️ {filename} 로드 실패: {e}") # 로그 너무 많으면 주석 처리
                 self.data[key] = {} if key != "levels" else []
 
     def get_item(self, item_id: str):
@@ -49,11 +48,34 @@ class AlchemyManager:
     def get_level_info(self, rank_idx: int):
         levels = self.data.get("levels", [])
         if not levels: return {}
+        # 범위를 벗어나면 마지막 레벨 반환
         if rank_idx >= len(levels): return levels[-1]
         return levels[rank_idx]
+    
+    def get_next_level_exp(self, rank_idx: int):
+        levels = self.data.get("levels", [])
+        # 다음 레벨이 있으면 그 레벨의 요구 경험치 반환
+        if rank_idx + 1 < len(levels):
+            return levels[rank_idx + 1].get("exp_required", 999999)
+        return None # 만렙
 
     def get_config(self, key, default=None):
         return self.data.get("config", {}).get(key, default)
+
+# ---------------------------------------------------------
+# 유틸리티: 게이지 바 생성기
+# ---------------------------------------------------------
+def create_progress_bar(current, total, length=10, active="🟩", inactive="⬜"):
+    if total <= 0: return inactive * length
+    percentage = min(1.0, max(0.0, current / total))
+    filled = int(round(percentage * length))
+    return active * filled + inactive * (length - filled)
+
+def get_grade_emoji(multiplier):
+    if multiplier >= 1.5: return "🌟 **SS**"
+    if multiplier >= 1.3: return "🟣 **S**"
+    if multiplier >= 1.1: return "🔵 **A**"
+    return "⚪ **B**"
 
 # ---------------------------------------------------------
 # [View 1] 탐사 세션
@@ -77,15 +99,19 @@ class ExplorationSessionView(discord.ui.View):
         if len(self.logs) > 5: self.logs.pop(0)
 
     def _get_embed(self):
-        ap_bar = "🟩" * self.current_ap + "⬛" * (self.max_ap - self.current_ap)
+        ap_bar = create_progress_bar(self.current_ap, self.max_ap, 10, "⚡", "⬛")
+        
         desc = f"📍 **{self.location['name']}**\n"
-        desc += f"체력: {ap_bar} ({self.current_ap}/{self.max_ap})\n\n"
-        desc += "📜 **탐사 로그**\n" + ("\n".join(self.logs) if self.logs else "탐사를 시작해주세요.")
-        return discord.Embed(title="🌲 탐사 진행 중", description=desc, color=discord.Color.green())
+        desc += f"{ap_bar} ({self.current_ap}/{self.max_ap})\n\n"
+        desc += "📜 **탐사 로그**\n" + ("\n".join(self.logs) if self.logs else "```탐사를 시작해주세요.```")
+        
+        embed = discord.Embed(title="🌲 탐사 진행 중", description=desc, color=discord.Color.green())
+        embed.set_footer(text="버튼을 눌러 행동하세요.")
+        return embed
 
     async def on_timeout(self):
         if not self.active: return
-        if self.current_ap == self.max_ap:
+        if self.current_ap == self.max_ap: # 아무것도 안하고 끝남 -> 돈 환불
             await db.execute("UPDATE users SET money = money + $1 WHERE user_id = $2", self.cost, self.user_id)
         if self.message:
             try: await self.message.edit(content="💤 탐사가 종료되었습니다.", view=None, embed=None)
@@ -99,24 +125,20 @@ class ExplorationSessionView(discord.ui.View):
         self.current_ap -= 1
         probs = self.location.get("probabilities", {})
         
-        # 함정 확률 체크
         if random.uniform(0, 100) < probs.get("trap", 0):
             msg = self.location.get("trap_msg", "함정에 걸렸습니다!")
-            self._update_log(f"💥 {msg}")
+            self._update_log(f"💥 `{msg}`")
             self.current_ap = max(0, self.current_ap - 1)
         else:
             drop_items = self.location.get("drop_items", [])
             if drop_items:
                 item_id = random.choice(drop_items)
-                
-                # [중첩 로직 적용]
                 await self.cog.add_item_to_inventory(self.user_id, item_id)
-                
                 item = self.cog.am.get_item(item_id)
                 name = item['name'] if item else "미확인 물체"
                 self._update_log(f"📦 **{name}** 획득!")
             else:
-                self._update_log("💨 허탕을 쳤습니다.")
+                self._update_log("💨 `허탕을 쳤습니다.`")
 
         if self.current_ap <= 0:
             button.disabled = True
@@ -145,7 +167,7 @@ class MapSelectionView(discord.ui.View):
             cost = data.get("cost", 0)
             disabled = user_money < cost
             emoji = "🔒" if disabled else "🌲"
-            label = f"{data['name']} ({cost:,}원)"
+            label = f"{data['name']} ({cost:,}G)"
             
             btn = discord.ui.Button(label=label, custom_id=loc_id, disabled=disabled, emoji=emoji, style=discord.ButtonStyle.secondary)
             btn.callback = self.make_callback(loc_id, data)
@@ -182,7 +204,6 @@ class HarvestChoiceView(discord.ui.View):
             try: await self.message.edit(content="⏳ 시간 초과! 아이템이 가방으로 이동했습니다.", view=None, embed=None)
             except: pass
             for item in self.items:
-                # [중첩 로직 적용]
                 await self.cog.add_item_to_inventory(self.user_id, item['item_id'], item['multiplier'])
 
     @discord.ui.button(label="💰 모두 판매", style=discord.ButtonStyle.success)
@@ -229,20 +250,10 @@ class AlchemyRPG(commands.Cog):
         self.bot = bot
         self.am = AlchemyManager()
 
-    # -----------------------------------------------------
-    # [핵심] 아이템 추가/감소 (중첩 제한 적용)
-    # -----------------------------------------------------
     async def add_item_to_inventory(self, user_id, item_id, multiplier=1.0, amount=1):
-        """
-        아이템을 추가할 때, 최대 스택 크기(30)를 고려하여
-        빈 공간을 채우거나 새 슬롯을 생성합니다.
-        """
-        # 설정에서 최대 스택 크기 가져오기 (기본값 30)
         config = self.am.get_config("inventory_rules", {})
         max_stack = config.get("max_stack_size", 30)
 
-        # 1. '꽉 차지 않은' 기존 스택 찾기 (같은 아이템, 같은 배율)
-        #    id 순으로 정렬하여 앞에서부터 채움
         existing_stacks = await db.fetch(
             """
             SELECT id, count FROM inventory 
@@ -254,16 +265,11 @@ class AlchemyRPG(commands.Cog):
 
         for stack in existing_stacks:
             if amount <= 0: break
-            
-            current_count = stack['count']
-            space = max_stack - current_count  # 남은 공간
-            
-            to_add = min(amount, space)  # 추가할 양
-            
+            space = max_stack - stack['count']
+            to_add = min(amount, space)
             await db.execute("UPDATE inventory SET count = count + $1 WHERE id = $2", to_add, stack['id'])
             amount -= to_add
 
-        # 2. 남은 수량이 있다면 새 슬롯 생성 (30개씩 끊어서)
         while amount > 0:
             to_add = min(amount, max_stack)
             await db.execute(
@@ -273,7 +279,6 @@ class AlchemyRPG(commands.Cog):
             amount -= to_add
 
     async def remove_item_from_inventory(self, row_id, amount=1):
-        """특정 슬롯(row_id)에서 아이템 개수 차감 또는 삭제"""
         await db.execute("UPDATE inventory SET count = count - $1 WHERE id = $2", amount, row_id)
         await db.execute("DELETE FROM inventory WHERE id = $1 AND count <= 0", row_id)
 
@@ -291,10 +296,85 @@ class AlchemyRPG(commands.Cog):
         return base + bonus
 
     # -----------------------------------------------------
+    # 텃밭 UI 생성 헬퍼
+    # -----------------------------------------------------
+    async def create_farm_ui(self, user_id):
+        user = await self.get_user_stats(user_id)
+        plots = await db.fetch("SELECT * FROM farm WHERE user_id = $1 ORDER BY plant_time", user_id)
+        
+        embed = discord.Embed(title="🌿 나의 텃밭", color=discord.Color.green())
+        
+        # 텃밭 상태 표시
+        plot_status = f"📐 **보유 토지:** {user['unlocked_plots']}평 (사용 중: {len(plots)}평)\n\n"
+        
+        now = datetime.utcnow()
+        can_harvest = False
+        plot_lines = []
+
+        if not plots:
+            plot_lines.append("🍂 *텃밭이 비어있습니다.*")
+        else:
+            for i, plot in enumerate(plots):
+                item = self.am.get_item(plot['item_id'])
+                name = item['name'] if item else "???"
+                mult = float(plot['multiplier'])
+                plant_time = plot['plant_time'].replace(tzinfo=None) if plot['plant_time'].tzinfo else plot['plant_time']
+                
+                elapsed = (now - plant_time).total_seconds()
+                remain = 600 - elapsed
+                
+                # 등급 및 상태
+                grade = get_grade_emoji(mult)
+                if remain <= 0:
+                    status = "✅ **수확 가능**"
+                    can_harvest = True
+                else:
+                    m, s = divmod(int(remain), 60)
+                    status = f"⏳ {m}분 {s}초"
+                
+                plot_lines.append(f"`{i+1}.` {grade} **{name}** ➜ {status}")
+
+        embed.description = plot_status + "\n".join(plot_lines)
+        
+        view = discord.ui.View()
+        
+        btn = discord.ui.Button(label="수확하기", style=discord.ButtonStyle.success if can_harvest else discord.ButtonStyle.secondary, disabled=(not can_harvest), emoji="🚜")
+        btn.callback = self.harvest_callback
+        view.add_item(btn)
+
+        # 확장 버튼 로직
+        current = user['unlocked_plots']
+        farm_levels = self.am.data.get("facilities", {}).get("farm", {}).get("levels", [])
+        next_info = next((l for l in farm_levels if l["level"] == current + 1), None)
+        
+        if next_info:
+            cost = next_info.get("cost", 999999)
+            btn_exp = discord.ui.Button(label=f"확장하기 ({cost:,}원)", style=discord.ButtonStyle.primary, emoji="🧱")
+            
+            async def exp_cb(inter):
+                u = await self.get_user_stats(inter.user.id)
+                cur_plots = u['unlocked_plots']
+                next_cfg = next((l for l in farm_levels if l["level"] == cur_plots + 1), None)
+                
+                if not next_cfg: return await inter.response.send_message("❌ 최대 레벨입니다.", ephemeral=True)
+                real_cost = next_cfg['cost']
+                if u["money"] < real_cost: return await inter.response.send_message(f"❌ 돈이 부족합니다. ({real_cost:,}원 필요)", ephemeral=True)
+                
+                await db.execute("UPDATE users SET money = money - $1, unlocked_plots = unlocked_plots + 1 WHERE user_id = $2", real_cost, inter.user.id)
+                
+                new_embed, new_view = await self.create_farm_ui(inter.user.id)
+                await inter.response.edit_message(embed=new_embed, view=new_view)
+                await inter.followup.send(f"🎉 텃밭 확장 완료! (현재 {cur_plots + 1}칸)", ephemeral=True)
+
+            btn_exp.callback = exp_cb
+            view.add_item(btn_exp)
+
+        return embed, view
+
+    # -----------------------------------------------------
     # 명령어
     # -----------------------------------------------------
     @app_commands.command(name="판매", description="가방의 아이템을 판매합니다.")
-    @app_commands.describe(index="아이템 번호", count="판매 개수")
     async def sell_item(self, interaction: discord.Interaction, index: int, count: int = 1):
         if index < 1 or count < 1: return await interaction.response.send_message("1 이상의 숫자를 입력하세요.", ephemeral=True)
 
@@ -305,28 +385,20 @@ class AlchemyRPG(commands.Cog):
 
         if not target_item: return await interaction.response.send_message("해당 번호에 아이템이 없습니다.", ephemeral=True)
 
-        # 현재 슬롯의 보유량 확인
         current_count = target_item['count'] if target_item['count'] else 1
-        
-        # 요청 개수가 보유량보다 많으면 보유량만큼만 판매
         sell_amount = min(current_count, count)
         
         info = self.am.get_item(target_item['item_id'])
         base_price = info.get('price', 0) if info else 0
         total_price = int(base_price * float(target_item['multiplier']) * sell_amount)
         
-        # 개수 차감
         await self.remove_item_from_inventory(target_item['id'], sell_amount)
-        
-        # 돈 지급
         await db.execute("UPDATE users SET money = money + $1 WHERE user_id = $2", total_price, interaction.user.id)
 
         item_name = info.get('name', '알 수 없음') if info else '알 수 없음'
-        
         msg = f"💰 **{item_name}** {sell_amount}개를 팔아 **{total_price:,}원**을 벌었습니다."
         if count > current_count:
-            msg += f"\n(해당 슬롯에 {current_count}개밖에 없어 모두 팔았습니다.)"
-            
+            msg += f"\n(모두 팔았습니다.)"
         await interaction.response.send_message(msg)
 
     @app_commands.command(name="탐사", description="탐사할 지역을 선택합니다.")
@@ -338,57 +410,7 @@ class AlchemyRPG(commands.Cog):
 
     @app_commands.command(name="텃밭", description="작물을 관리합니다.")
     async def farm_status(self, interaction: discord.Interaction):
-        user = await self.get_user_stats(interaction.user.id)
-        plots = await db.fetch("SELECT * FROM farm WHERE user_id = $1 ORDER BY plant_time", interaction.user.id)
-        
-        embed = discord.Embed(title="🌿 텃밭", color=discord.Color.green())
-        desc = f"**슬롯:** {user['unlocked_plots']}개\n\n"
-        
-        now = datetime.utcnow()
-        can_harvest = False
-        
-        if not plots: desc += "비어있음. `/심기`를 해보세요."
-        else:
-            for i, plot in enumerate(plots):
-                item = self.am.get_item(plot['item_id'])
-                name = item['name'] if item else "???"
-                mult = float(plot['multiplier'])
-                
-                plant_time = plot['plant_time'].replace(tzinfo=None) if plot['plant_time'].tzinfo else plot['plant_time']
-                elapsed = (now - plant_time).total_seconds()
-                remain = 600 - elapsed
-                
-                if remain <= 0:
-                    status = "✅ **수확 가능**"
-                    can_harvest = True
-                else:
-                    m, s = divmod(int(remain), 60)
-                    status = f"⏳ {m}분 {s}초"
-                desc += f"**{i+1}. {name}** (x{mult:.2f}) ➔ {status}\n"
-
-        embed.description = desc
-        view = discord.ui.View()
-        
-        btn = discord.ui.Button(label="수확", style=discord.ButtonStyle.success if can_harvest else discord.ButtonStyle.secondary, disabled=(not can_harvest), emoji="🚜")
-        btn.callback = self.harvest_callback
-        view.add_item(btn)
-
-        # 확장 비용 (JSON 연동)
-        current = user['unlocked_plots']
-        farm_levels = self.am.data.get("facilities", {}).get("farm", {}).get("levels", [])
-        next_info = next((l for l in farm_levels if l["level"] == current + 1), None)
-        
-        if next_info:
-            cost = next_info.get("cost", 999999)
-            btn_exp = discord.ui.Button(label=f"확장 ({cost:,}원)", style=discord.ButtonStyle.secondary)
-            async def exp_cb(inter):
-                u = await self.get_user_stats(inter.user.id)
-                if u["money"] < cost: return await inter.response.send_message("돈 부족", ephemeral=True)
-                await db.execute("UPDATE users SET money = money - $1, unlocked_plots = unlocked_plots + 1 WHERE user_id = $2", cost, inter.user.id)
-                await inter.response.send_message(f"🎉 확장 완료! ({u['unlocked_plots']+1}칸)", ephemeral=True)
-            btn_exp.callback = exp_cb
-            view.add_item(btn_exp)
-
+        embed, view = await self.create_farm_ui(interaction.user.id)
         await interaction.response.send_message(embed=embed, view=view)
 
     async def harvest_callback(self, interaction: discord.Interaction):
@@ -402,7 +424,6 @@ class AlchemyRPG(commands.Cog):
             if (now - plant_time).total_seconds() < 600: continue
 
             await db.execute("DELETE FROM farm WHERE id = $1", plot['id'])
-            
             item_info = self.am.get_item(plot['item_id'])
             name = item_info['name'] if item_info else "작물"
             
@@ -432,9 +453,7 @@ class AlchemyRPG(commands.Cog):
         item = await db.fetchrow("SELECT * FROM inventory WHERE user_id = $1 ORDER BY id LIMIT 1 OFFSET $2", interaction.user.id, index - 1)
         if not item: return await interaction.response.send_message("아이템 없음", ephemeral=True)
         
-        # 개수 1개 차감
         await self.remove_item_from_inventory(item['id'], 1)
-        
         await db.execute("INSERT INTO farm (user_id, item_id, multiplier, plant_time) VALUES ($1, $2, $3, NOW())", 
                          interaction.user.id, item['item_id'], item['multiplier'])
         
@@ -447,10 +466,18 @@ class AlchemyRPG(commands.Cog):
         max_slots = await self.get_bag_capacity(user['rank_id'])
         items = await db.fetch("SELECT * FROM inventory WHERE user_id = $1 ORDER BY id", interaction.user.id)
         
+        # 가방 용량 게이지
+        bag_bar = create_progress_bar(len(items), max_slots, 10, "🟦", "⬛")
+        
         embed = discord.Embed(title=f"🎒 {interaction.user.display_name}의 가방", color=discord.Color.gold())
-        if not items: embed.description = "비어있음"
+        embed.description = f"{bag_bar} ({len(items)}/{max_slots} 슬롯)"
+        
+        if not items:
+            embed.add_field(name="상태", value="텅 비었습니다.\n`/탐사`를 통해 아이템을 얻어보세요!", inline=False)
         else:
             lines = []
+            max_stack = self.am.get_config("inventory_rules", {}).get("max_stack_size", 30)
+            
             for i, item in enumerate(items):
                 info = self.am.get_item(item['item_id'])
                 name = info['name'] if info else f"Item({item['item_id']})"
@@ -459,27 +486,62 @@ class AlchemyRPG(commands.Cog):
                 count = item['count'] if item['count'] else 1
                 calc_price = int(price * mult)
                 
-                # 최대 중첩량 표시 (30개 넘으면 다음 칸으로)
-                max_stack = self.am.get_config("inventory_rules", {}).get("max_stack_size", 30)
+                # 시각적 꾸미기
+                grade = get_grade_emoji(mult)
                 
-                lines.append(f"`{i+1}.` **{name}** (x{mult:.2f}) x**{count}**/{max_stack} | 개당 {calc_price}원")
-            embed.description = "\n".join(lines)
+                # 한 줄로 깔끔하게 정리: 번호. [등급] 이름 | 수량 | 가격
+                # 예: 1. 🌟 SS 산삼 | 3/30개 | 5000원
+                line = f"`{i+1}.` {grade} **{name}**\n└ 📦 `{count}/{max_stack}`개  💰 `{calc_price}원`"
+                lines.append(line)
             
-        embed.set_footer(text=f"사용 중: {len(items)}슬롯 / 전체: {max_slots}슬롯 | 자산: {user['money']:,}원")
+            # 너무 길어지면 잘라서 표시 (디스코드 제한 방지)
+            if len(lines) > 10:
+                chunk1 = "\n".join(lines[:10])
+                chunk2 = "\n".join(lines[10:])
+                embed.add_field(name="아이템 목록 (1~10)", value=chunk1, inline=False)
+                embed.add_field(name="아이템 목록 (11~)", value=chunk2, inline=False)
+            else:
+                embed.add_field(name="아이템 목록", value="\n".join(lines), inline=False)
+
+        embed.set_footer(text=f"자산: {user['money']:,}원 | `/판매 [번호] [개수]`로 판매 가능")
         await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name="프로필", description="내 정보")
+    @app_commands.command(name="프로필", description="내 정보를 확인합니다.")
     async def profile(self, interaction: discord.Interaction):
         user = await self.get_user_stats(interaction.user.id)
-        rank = user['rank_id']
-        lv_info = self.am.get_level_info(rank)
-        title = lv_info.get("title", f"Rank {rank}")
         
-        embed = discord.Embed(title=f"👤 {interaction.user.display_name}", color=discord.Color.blue())
+        # 1. 랭크 정보 계산
+        rank_id = user['rank_id']
+        current_level_info = self.am.get_level_info(rank_id)
+        next_exp = self.am.get_next_level_exp(rank_id)
+        
+        rank_title = current_level_info.get("title", "초보자")
+        emoji = "🔰" # 기본 배지
+        if rank_id >= 5: emoji = "👑"
+        elif rank_id >= 3: emoji = "💠"
+        
+        # 2. 경험치 바 생성
+        if next_exp:
+            exp_bar = create_progress_bar(user['exp'], next_exp, 12, "🟩", "⬜")
+            exp_text = f"{user['exp']} / {next_exp} XP"
+            percent = int((user['exp'] / next_exp) * 100)
+            progress_desc = f"{exp_bar} **{percent}%**\n`{exp_text}`"
+        else:
+            progress_desc = "🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦 **MAX**\n`최고 레벨 도달`"
+
+        # 3. 임베드 디자인
+        embed = discord.Embed(title=f"{emoji} {rank_title}", description=f"**{interaction.user.display_name}**님의 신분증입니다.", color=discord.Color.dark_blue())
         embed.set_thumbnail(url=interaction.user.display_avatar.url)
-        embed.add_field(name="등급", value=f"{title}", inline=True)
-        embed.add_field(name="돈", value=f"{user['money']:,}원", inline=True)
-        embed.add_field(name="텃밭", value=f"{user['unlocked_plots']}칸", inline=True)
+        
+        # 자산 섹션
+        embed.add_field(name="💰 자산 현황", value=f"🪙 **{user['money']:,}**원\n🌱 **{user['unlocked_plots']}**평 (텃밭)", inline=True)
+        
+        # 활동 섹션 (나중에 추가 가능)
+        embed.add_field(name="📊 활동 기록", value=f"🏆 랭크: {rank_id}\n📍 위치: {user.get('location', '마을')}", inline=True)
+        
+        # 진행도 섹션 (가로로 길게)
+        embed.add_field(name="📈 성장 진행도", value=progress_desc, inline=False)
+        
         await interaction.response.send_message(embed=embed)
 
 async def setup(bot):

@@ -9,6 +9,7 @@ class Database:
         self.pool = None
 
     async def connect(self):
+        """DB에 연결합니다 (봇 켜질 때 1번 실행)"""
         url = os.getenv("DATABASE_URL")
         if not url:
             print("❌ DATABASE_URL 환경변수가 없습니다.")
@@ -22,48 +23,47 @@ class Database:
             print(f"❌ DB 연결 실패: {e}")
 
     async def init_tables(self):
-        # [수정] inventory 테이블에 count 컬럼 추가 (기존 테이블 호환)
+        """필요한 테이블을 자동으로 생성합니다. (초기화 버전)"""
         queries = [
+            # 1. 유저 테이블
             """
             CREATE TABLE IF NOT EXISTS users (
                 user_id BIGINT PRIMARY KEY,
-                money BIGINT DEFAULT 0,
-                exp BIGINT DEFAULT 0,
+                money BIGINT DEFAULT 3000,
                 rank_id INTEGER DEFAULT 0,
-                location VARCHAR(50) DEFAULT 'home',
+                exp BIGINT DEFAULT 0,
+                location VARCHAR(50) DEFAULT 'LOC_001',
                 unlocked_plots INTEGER DEFAULT 1
             );
             """,
+            # 2. 인벤토리 테이블 (count 컬럼 기본 포함!)
             """
             CREATE TABLE IF NOT EXISTS inventory (
                 id SERIAL PRIMARY KEY,
-                user_id BIGINT,
+                user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE,
                 item_id VARCHAR(50),
                 multiplier NUMERIC(4, 2) DEFAULT 1.0,
-                count INTEGER DEFAULT 1
+                count INTEGER DEFAULT 1,
+                acquired_at TIMESTAMP DEFAULT NOW()
             );
             """,
+            # 3. 텃밭 테이블
             """
             CREATE TABLE IF NOT EXISTS farm (
                 id SERIAL PRIMARY KEY,
-                user_id BIGINT,
+                user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE,
                 item_id VARCHAR(50),
                 multiplier NUMERIC(4, 2),
                 plant_time TIMESTAMP DEFAULT NOW()
             );
             """
         ]
+        
         async with self.pool.acquire() as conn:
             for q in queries:
                 await conn.execute(q)
-            
-            # [중요] 기존 DB를 쓰는 경우 count 컬럼이 없을 수 있으므로 강제 추가 시도
-            try:
-                await conn.execute("ALTER TABLE inventory ADD COLUMN IF NOT EXISTS count INTEGER DEFAULT 1;")
-            except:
-                pass # 이미 있으면 패스
-                
-        print("✅ 테이블 초기화 및 스키마 업데이트 완료")
+        
+        print("✅ 테이블 초기화/생성 완료 (새로운 설계도)")
 
     async def execute(self, query, *args):
         async with self.pool.acquire() as conn:
@@ -81,4 +81,5 @@ class Database:
         async with self.pool.acquire() as conn:
             return await conn.fetchval(query, *args)
 
+# 전역 DB 객체 생성
 db = Database()
