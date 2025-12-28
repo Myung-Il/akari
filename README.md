@@ -148,6 +148,8 @@ DISCORD_TOKEN=여기에_발급받은_봇_토큰_입력
 
 모든 설정이 완료되었다면 아래 명령어로 아카리를 실행합니다.
 ```bash
+pip freeze > requirements.txt
+
 python main.py
 ```
 
