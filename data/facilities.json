@@ -42,41 +42,41 @@
   },
   "farm": {
     "name": "약초 텃밭",
-    "description": "씨앗을 심으면 정확히 10분 뒤 수확할 수 있습니다.",
+    "description": "영초를 심으면 정확히 10분 뒤 수확할 수 있습니다.",
     "levels": [
       {
         "level": 1,
         "name": "텃밭 1구획",
         "cost": 0,
-        "effect": { "plot_slots": 1, "growth_time_min": 10 },
+        "effect": { "plot_slots": 1 },
         "description": "한 번에 하나의 작물만 심을 수 있습니다."
       },
       {
         "level": 2,
         "name": "텃밭 2구획",
         "cost": 3000,
-        "effect": { "plot_slots": 2, "growth_time_min": 10 },
+        "effect": { "plot_slots": 2 },
         "description": "두 개의 작물을 동시에 키웁니다."
       },
       {
         "level": 3,
         "name": "텃밭 3구획",
         "cost": 30000,
-        "effect": { "plot_slots": 3, "growth_time_min": 10 },
+        "effect": { "plot_slots": 3 },
         "description": "세 개의 작물을 동시에 키웁니다."
       },
       {
         "level": 4,
         "name": "텃밭 4구획",
         "cost": 150000,
-        "effect": { "plot_slots": 4, "growth_time_min": 10 },
+        "effect": { "plot_slots": 4 },
         "description": "네 개의 작물을 동시에 키웁니다."
       },
       {
         "level": 5,
         "name": "텃밭 5구획",
         "cost": 500000,
-        "effect": { "plot_slots": 5, "growth_time_min": 10 },
+        "effect": { "plot_slots": 5 },
         "description": "다섯 개의 작물을 동시에 키웁니다."
       }
     ]
