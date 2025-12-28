@@ -35,4 +35,4 @@ class AkariBot(commands.Bot):
 
     async def on_ready(self):
         print(f"✅ [Bot] {self.user} 온라인! ID: {self.user.id}")
-        await self.change_presence(activity=discord.Game(name="테스트 중"))
+        await self.change_presence(activity=discord.Game(name="게임 제작 중"))

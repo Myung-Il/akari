@@ -1,46 +1,84 @@
 import os
-import psycopg2
+import asyncpg
 from dotenv import load_dotenv
 
-load_dotenv() # 로컬에서 .env 로드용
+load_dotenv()
 
-def get_db_connection():
-    """데이터베이스 연결 객체를 반환합니다."""
-    url = os.getenv("DATABASE_URL")
-    if not url:
-        print("❌ DATABASE_URL 환경변수가 없습니다!")
-        return None
-    
-    try:
-        conn = psycopg2.connect(url)
-        return conn
-    except Exception as e:
-        print(f"❌ DB 연결 실패: {e}")
-        return None
+class Database:
+    def __init__(self):
+        self.pool = None
 
-def init_db():
-    """테이블이 없으면 생성합니다 (봇 켜질 때 실행)."""
-    conn = get_db_connection()
-    if not conn:
-        return
-    
-    try:
-        cur = conn.cursor()
+    async def connect(self):
+        """DB 연결 풀 생성"""
+        db_url = os.getenv("DATABASE_URL")
+        if not db_url:
+            print("❌ DATABASE_URL 환경변수가 없습니다!")
+            return
         
-        # [MySQL 지식 활용] SQL 문법은 99% 똑같습니다!
-        # 예시: 유저의 레벨을 저장하는 테이블 생성
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS user_levels (
+        try:
+            self.pool = await asyncpg.create_pool(db_url)
+            print("✅ PostgreSQL 연결 성공 (asyncpg)")
+            await self.init_tables()
+        except Exception as e:
+            print(f"❌ DB 연결 실패: {e}")
+
+    async def init_tables(self):
+        """테이블이 없으면 자동 생성"""
+        queries = [
+            # 1. 유저 테이블
+            """
+            CREATE TABLE IF NOT EXISTS users (
                 user_id BIGINT PRIMARY KEY,
-                xp INTEGER DEFAULT 0,
-                level INTEGER DEFAULT 1
+                money BIGINT DEFAULT 3000,
+                rank_id INT DEFAULT 0,
+                exp BIGINT DEFAULT 0,
+                location TEXT DEFAULT 'LOC_001',
+                unlocked_plots INT DEFAULT 1,
+                last_updated TIMESTAMP DEFAULT NOW()
             );
-        """)
+            """,
+            # 2. 인벤토리 테이블
+            """
+            CREATE TABLE IF NOT EXISTS inventory (
+                id SERIAL PRIMARY KEY,
+                user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE,
+                item_id TEXT NOT NULL,
+                multiplier NUMERIC(4, 2) DEFAULT 1.0,
+                acquired_at TIMESTAMP DEFAULT NOW()
+            );
+            """,
+            # 3. 텃밭 테이블
+            """
+            CREATE TABLE IF NOT EXISTS farm (
+                id SERIAL PRIMARY KEY,
+                user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE,
+                item_id TEXT NOT NULL,
+                multiplier NUMERIC(4, 2) DEFAULT 1.0,
+                plant_time TIMESTAMP DEFAULT NOW()
+            );
+            """
+        ]
         
-        conn.commit()
-        print("✅ 데이터베이스 초기화 완료 (Supabase)")
-        
-    except Exception as e:
-        print(f"❌ 테이블 생성 오류: {e}")
-    finally:
-        conn.close()
+        async with self.pool.acquire() as conn:
+            for q in queries:
+                await conn.execute(q)
+            print("✅ 테이블 무결성 검사 완료")
+
+    async def execute(self, query, *args):
+        async with self.pool.acquire() as conn:
+            return await conn.execute(query, *args)
+
+    async def fetch(self, query, *args):
+        async with self.pool.acquire() as conn:
+            return await conn.fetch(query, *args)
+
+    async def fetchrow(self, query, *args):
+        async with self.pool.acquire() as conn:
+            return await conn.fetchrow(query, *args)
+    
+    async def fetchval(self, query, *args):
+        async with self.pool.acquire() as conn:
+            return await conn.fetchval(query, *args)
+
+# 전역 DB 객체 (봇 메인에서 import해서 사용)
+db = Database()
