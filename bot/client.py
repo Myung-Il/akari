@@ -27,7 +27,8 @@ class AkariBot(commands.Bot):
         extensions = [
             "bot.commands.ping",
             "bot.commands.tts",
-            "features.garden"
+            # "features.garden",
+            "minigames.smith",
         ]
 
         for ext in extensions:
