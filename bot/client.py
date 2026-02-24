@@ -27,7 +27,8 @@ class AkariBot(commands.Bot):
         extensions = [
             "bot.commands.ping",
             "bot.commands.tts",
-            "minigames.smith",
+            # "minigames.smith",
+            "minigames.BlueMarble",
         ]
 
         for ext in extensions:
@@ -46,4 +47,4 @@ class AkariBot(commands.Bot):
 
     async def on_ready(self):
         print(f"✅ [Online] {self.user} 로그인 완료 (ID: {self.user.id})")
-        await self.change_presence(activity=discord.Game(name="약초 키우기"))
+        await self.change_presence(activity=discord.Game(name="히카리 전용 디코 봇"))
