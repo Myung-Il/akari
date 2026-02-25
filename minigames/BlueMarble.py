@@ -391,7 +391,6 @@ class BlueMarble(commands.Cog):
             players[user_id].round = 1
             welcome_text = f"🎉 {interaction.user.mention}님, 블루마블 게임에 오신 것을 환영합니다!, 주사위를 굴립니다!"
         else: welcome_text = f"🎲 {interaction.user.mention}님이 주사위를 굴립니다!"
-        players[user_id].round += 1
 
         # 1. 초기 메시지 전송 (애니메이션 시작)
         embed = discord.Embed(
@@ -411,7 +410,7 @@ class BlueMarble(commands.Cog):
             await interaction.edit_original_response(embed=embed)
 
         embed = discord.Embed(
-            title = f"{DICE_EMOJIS[dice1]+DICE_EMOJIS[dice2]}칸 이동하세요",
+            title = f"{dice1+dice2}칸 이동하세요",
             description = f"{DICE_EMOJIS[dice1]} {DICE_EMOJIS[dice2]} {('더블! 한번 더 주사위를 굴립니다.' if dice1 == dice2 else '')}",
             color = discord.Color.gold() if dice1 == dice2 else discord.Color.green()
         )
@@ -446,12 +445,23 @@ class BlueMarble(commands.Cog):
                 await interaction.response.send_message(f"✅ {interaction.user.mention}님이 {self.city_name}을(를) 매입했습니다! {self.price}원을 지불하세요.")
             else: await interaction.response.send_message("❌ 매입에 필요한 자금이 부족합니다.", ephemeral=True)
 
-        @discord.ui.button(label="거절한다", style=discord.ButtonStyle.red)
+        @discord.ui.button(label="취소한다", style=discord.ButtonStyle.red)
         async def reject(self, interaction: discord.Interaction, button: discord.ui.Button):
-            # 거절 로직 구현
-            await interaction.response.send_message(f"❌ {interaction.user.mention}님이 {self.city_name} 매입을 거절했습니다.")
+            if interaction.user.id != self.buyer_id:
+                await interaction.response.send_message("❌ 이 버튼은 매입자만 사용할 수 있습니다.", ephemeral=True)
+                return
+            # 취소 로직 구현
+            await interaction.response.send_message(f"❌ {interaction.user.mention}님이 {self.city_name} 매입을 취소했습니다.")
+
+    async def city_autocomplete(self, interaction: discord.Interaction, current: str):
+        if not_player(interaction.user.id):return []
+        return [
+            app_commands.Choice(name=city_name, value=city_name)
+            for city_name in city.keys() if current.lower() in city_name.lower()
+        ][:5]  # 최대 25개까지 반환
 
     @app_commands.command(name="매입", description="원하는 도시를 매입합니다.")
+    @app_commands.autocomplete(city_name=city_autocomplete)
     async def buy_property(self, interaction: discord.Interaction, city_name: str):
         user_id = interaction.user.id
         if not_player(user_id):
@@ -467,7 +477,9 @@ class BlueMarble(commands.Cog):
             price = city[city_name]["건설비"]["대지료"]
             embed = discord.Embed(
                 title=f"🏙️ {city_name} 매입 제안",
-                description=f"{interaction.user.mention}님이 [ {city_name} ]을(를) 매입하려고 합니다.\n매입 가격: {price}원\n매입하시겠습니까?",
+                description=f"{interaction.user.mention}님이 [ {city_name} ]을(를) 매입하려고 합니다.\n\
+                    매입 가격: {price}원\n매입하시겠습니까?\n\
+                    보유 자금 : {players[user_id].money}원",
                 color=city[city_name]["color"]
             )
         
@@ -481,7 +493,9 @@ class BlueMarble(commands.Cog):
 
             embed = discord.Embed(
                 title=f"🏙️ {city_name} 매입 제안",
-                description=f"{interaction.user.mention}님이 {players[city[city_name]['소유자']].name}의 도시 [ {city_name} ]을(를) 매입하려고 합니다.\n매입 가격: {price}원\n매입하시겠습니까?",
+                description=f"{interaction.user.mention}님이 {players[city[city_name]['소유자']].name}의 도시 [ {city_name} ]을(를) 매입하려고 합니다.\n\
+                    매입 가격: {price}원\n매입하시겠습니까?\n\
+                    보유 자금 : {players[user_id].money}원",
                 color=city[city_name]["color"]
             )
 
@@ -517,6 +531,26 @@ class BlueMarble(commands.Cog):
     # =====================================================================================================================
     # 건설 데이터 클래스
     # =====================================================================================================================
+    @app_commands.command(name="건설", description="보유한 도시에 건물을 건설합니다.")
+    async def build(self, interaction: discord.Interaction, city_name: str, building_type: str):
+        user_id = interaction.user.id
+        if not_player(user_id):
+            await interaction.response.send_message("❌ 게임에 참여하지 않은 유저입니다. 주사위를 먼저 굴려주세요.")
+            return
+
+        if city_name not in city:
+            await interaction.response.send_message("❌ 존재하지 않는 도시입니다. 도시 이름을 확인해주세요.")
+            return
+        
+        if city[city_name]["소유자"] != user_id:
+            await interaction.response.send_message("❌ 건설하려는 도시의 소유자가 아닙니다.", ephemeral=True)
+            return
+    # 1. 소유자의 id와 명령어를 사용한 유저의 id가 같아야 한다.
+    # 2. 해당 땅에 건물의 건설비들의 합만큼 보유금액에서 줄어든다.
+    # 3. 종류는 별장, 빌딩, 호텔
+    # 4. 각 건물은 1개씩 밖에 못 짓는다.
+    # 5. 월급을 1회 받았을 때, 빌딩을 지을 수 있다.
+    # 6. 월급을 2회 받았을 때, 호텔을 지을 수 있다.
 
     # =====================================================================================================================
     # 통행료 데이터 클래스
