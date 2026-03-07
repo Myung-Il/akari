@@ -16,8 +16,6 @@ class TTS(commands.Cog):
             await interaction.response.send_message("❌ 먼저 음성 채널에 들어가주세요.", ephemeral=True)
             return
 
-        await interaction.response.defer()  # 응답 대기 상태로 전환 (시간 더 걸릴 수 있으니)
-
         channel = interaction.user.voice.channel
         voice_client = interaction.guild.voice_client
 
