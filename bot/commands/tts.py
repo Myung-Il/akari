@@ -12,18 +12,25 @@ class TTS(commands.Cog):
     # 1. 봇 접속 (기존 동일)
     @app_commands.command(name="join", description="아카리를 현재 음성 채널로 부릅니다.")
     async def join(self, interaction: discord.Interaction):
-        if interaction.user.voice:
-            channel = interaction.user.voice.channel
-            voice_client = interaction.guild.voice_client
+        if not interaction.user.voice:
+            await interaction.response.send_message("❌ 먼저 음성 채널에 들어가주세요.", ephemeral=True)
+            return
 
+        await interaction.response.defer()  # 응답 대기 상태로 전환 (시간 더 걸릴 수 있으니)
+
+        channel = interaction.user.voice.channel
+        voice_client = interaction.guild.voice_client
+
+        try:
             if voice_client:
                 await voice_client.move_to(channel)
             else:
                 await channel.connect()
-            
+                
             await interaction.response.send_message(f"🔊 **{channel.name}**에 도착했습니다! 이제 채팅을 읽어드릴게요.")
-        else:
-            await interaction.response.send_message("❌ 먼저 음성 채널에 들어가주세요.", ephemeral=True)
+        
+        except Exception as e:
+            await interaction.response.send_message("❌ 음성 채널 연결에 오류가 발생했습니다.", ephemeral=True)
 
     # 2. 봇 퇴장 (기존 동일)
     @app_commands.command(name="leave", description="아카리를 음성 채널에서 내보냅니다.")

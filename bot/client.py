@@ -28,7 +28,7 @@ class AkariBot(commands.Bot):
             "bot.commands.ping",
             "bot.commands.tts",
             # "minigames.smith",
-            "minigames.BlueMarble",
+            # "minigames.BlueMarble",
         ]
 
         for ext in extensions:
