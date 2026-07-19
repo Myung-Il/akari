@@ -5,7 +5,7 @@ services:
     # 방금 만든 스크립트로 빌드
     buildCommand: "./build.sh"
     # 실행 명령어
-    startCommand: "python index.py"
+    startCommand: "python main.py"
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.0

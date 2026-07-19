@@ -93,7 +93,7 @@ akari/
 ├── docs/                # 프로젝트 보고서 및 문서
 ├── web/                 # Keep-Alive용 Flask 서버
 ├── build.sh             # Render 배포용 자동 빌드 스크립트
-├── index.py              # 프로그램 진입점
+├── main.py              # 프로그램 진입점
 └── requirements.txt     # 의존성 패키지 목록
 ```
 
@@ -150,7 +150,7 @@ DISCORD_TOKEN=여기에_발급받은_봇_토큰_입력
 ```bash
 pip freeze > requirements.txt
 
-python index.py
+python main.py
 ```
 
 ---
